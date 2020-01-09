@@ -43,8 +43,8 @@ int main()
 	time = stats[0];
 	score = stats[1];
 	win = stats[2];
-
-	getch();			/* Wait for user input */
+	
+	getch();
 	endwin();	
 	printf("Time: %d\n", time);
 	printf("Score: %d\n", score);
@@ -62,7 +62,10 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 	{
 		clear();
 		printw("Update %d", i);
-		if(i < 7)
+		move_up(snake);
+		move_right(snake);
+		move_down(snake);
+		/*if(i < 7)
 			move_up(snake);
 		else if(i < 12)
 			move_left(snake);
@@ -70,9 +73,8 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 			move_down(snake);
 		else
 			move_right(snake);
-	
+		*/
 		drawSnake(snake, apple);
-                refresh();
 		switch(check_collision(snake, apple))
 		{
 			//apple
@@ -95,6 +97,7 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 			default:
 				break;
 		}
+                refresh();
 		usleep(50000);
 		//usleep(1000000 / fps);
 		i++;
