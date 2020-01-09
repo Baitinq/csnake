@@ -10,11 +10,12 @@ void playGame(LinkedList* snake, int* apple, int* stats);
 void drawSnake(LinkedList* snake, int* apple);
 void init_snake(LinkedList* snake);
 int check_collision(LinkedList* snake, int* apple);
-void move_left(LinkedList* snake);
-void move_right(LinkedList* snake);
-void move_up(LinkedList* snake);
-void move_down(LinkedList* snake);
-void follow(int* tmp, int* prev, LinkedList* snake);
+void move_left(LinkedList* snake, int* new);
+void move_right(LinkedList* snake, int* new);
+void move_up(LinkedList* snake, int* new);
+void move_down(LinkedList* snake, int* new);
+void follow(int* tmp, int* prev, LinkedList* snake, int* new);
+void newApple(LinkedList* snake, int* apple);
 
 int fps = 60;
 
@@ -23,30 +24,34 @@ int main()
 	WINDOW* windw;
 	LinkedList* snake;
 	int stats[3], apple[2];
-	int time, score, win;
+	int duration, score, win;
 	
+	srand(time(NULL));
 	windw = initscr();
 	clear();
 	noecho();
 	cbreak();
 
 	snake = initialise_linked_list();
-	apple[0] = 20;
-	apple[1] = 10;
-		//= { 1, 2};
-		
+	apple[0] = 60;
+	apple[1] = 15;
+
 	/* add initial nodes */
 	init_snake(snake);
 
 	playGame(snake, apple, stats);
-	
-	time = stats[0];
+
+	duration = stats[0];
 	score = stats[1];
 	win = stats[2];
 	
-	getch();
-	endwin();	
-	printf("Time: %d\n", time);
+	endwin();
+
+	if(win)
+		printf("You won! %d\n", win);
+	else
+		printf("You lost!\n");
+	printf("Time: %d\n", duration);
 	printf("Score: %d\n", score);
 
 	return 0;
@@ -55,34 +60,29 @@ int main()
 void playGame(LinkedList* snake, int* apple, int* stats)
 {
 	int start = (int)time(NULL);
-	int score = 0;
-	int win = 0;
+	int score, win, new[0];
+	score = win = *new = 0;
 	int i = 0;
 	while(1)
 	{
-		clear();
 		printw("Update %d", i);
-		move_up(snake);
-		move_right(snake);
-		move_down(snake);
-		/*if(i < 7)
-			move_up(snake);
+		if(i < 7)
+			move_up(snake, new);
 		else if(i < 12)
-			move_left(snake);
+			move_left(snake, new);
 		else if(i < 17)
-			move_down(snake);
+			move_down(snake, new);
 		else
-			move_right(snake);
-		*/
-		drawSnake(snake, apple);
+			move_right(snake, new);
+		
 		switch(check_collision(snake, apple))
 		{
 			//apple
 			case 1:
 				score++;
-				//new apple
+				newApple(snake, apple);
 				//new node
-				append_linked_list(snake, snake->tail->x - 1, snake->tail->y);
+				*new = 1;
 				break;
 			//self
 			case 2:
@@ -97,8 +97,10 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 			default:
 				break;
 		}
+		clear();
+		drawSnake(snake, apple);
                 refresh();
-		usleep(50000);
+		usleep(500000);
 		//usleep(1000000 / fps);
 		i++;
 	}
@@ -122,7 +124,7 @@ void drawSnake(LinkedList* snake, int* apple)
 		element = element->next;
 	}
 
-	mvaddstr(apple[0], apple[1], "=");
+	mvaddstr(apple[1], apple[0], "=");
 }
 
 void init_snake(LinkedList* snake)
@@ -139,11 +141,6 @@ void init_snake(LinkedList* snake)
 
 int check_collision(LinkedList* snake, int* apple)
 {
-	//0 no collision
-	//1 collision with apple
-	//2 collision with self
-	//3 collision with wall
-	
 	Node* element;
 
 	/* check collision with apple */
@@ -167,7 +164,7 @@ int check_collision(LinkedList* snake, int* apple)
 	return 0;
 }
 
-void move_left(LinkedList* snake)
+void move_left(LinkedList* snake, int* new)
 {
 	int tmp[2];
         int prev[2];
@@ -176,10 +173,10 @@ void move_left(LinkedList* snake)
         *(prev + 1) = snake->head->y;
         snake->head->x = snake->head->x - 1;
 
-        follow(tmp, prev, snake);
+        follow(tmp, prev, snake, new);
 }
 
-void move_right(LinkedList* snake)
+void move_right(LinkedList* snake, int* new)
 {
 	int tmp[2];
         int prev[2];
@@ -188,10 +185,10 @@ void move_right(LinkedList* snake)
         *(prev + 1) = snake->head->y;
         snake->head->x = snake->head->x + 1;
 
-        follow(tmp, prev, snake);
+        follow(tmp, prev, snake, new);
 }
 
-void move_up(LinkedList* snake)
+void move_up(LinkedList* snake, int* new)
 {
         int tmp[2];
 	int prev[2];
@@ -200,10 +197,10 @@ void move_up(LinkedList* snake)
 	*(prev + 1) = snake->head->y;
         snake->head->y = snake->head->y - 1;
 	
-	follow(tmp, prev, snake);
+	follow(tmp, prev, snake, new);
 }
 
-void move_down(LinkedList* snake)
+void move_down(LinkedList* snake, int* new)
 {
 	int tmp[2];
         int prev[2];
@@ -212,10 +209,10 @@ void move_down(LinkedList* snake)
         *(prev + 1) = snake->head->y;
         snake->head->y = snake->head->y + 1;
 
-        follow(tmp, prev, snake);
+        follow(tmp, prev, snake, new);
 }
 
-void follow(int* tmp, int* prev, LinkedList* snake)
+void follow(int* tmp, int* prev, LinkedList* snake, int* new)
 {
         Node* element;
         element = snake->head->next;
@@ -223,7 +220,7 @@ void follow(int* tmp, int* prev, LinkedList* snake)
         {
                 *(tmp + 0) = element->x;
                 *(tmp + 1) = element->y;
-
+		
                 element->x = *(prev + 0);
                 element->y = *(prev + 1);
 
@@ -232,6 +229,28 @@ void follow(int* tmp, int* prev, LinkedList* snake)
 
                 element = element->next;
         }
+
+	if(*new)
+	{
+		append_linked_list(snake,  *(prev + 0),  *(prev + 1));
+		*new = 0;
+	}
+}
+
+void newApple(LinkedList* snake, int* apple)
+{
+	Node* element;
+
+	apple[0] = (rand() % (COLS - 0 + 1)) + 0;
+        apple[1] = (rand() % (LINES - 0 + 1)) + 0;
+	
+	element = snake->head;
+	if(element)
+	{
+		if(element->x == apple[0] && element->y == apple[1])
+			newApple(snake, apple);
+		element = element->next;
+	}
 }
 
 
