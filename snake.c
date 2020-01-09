@@ -17,7 +17,7 @@ void move_down(LinkedList* snake, int* new);
 void follow(int* tmp, int* prev, LinkedList* snake, int* new);
 void newApple(LinkedList* snake, int* apple);
 
-int fps = 60;
+int fps = 3;
 
 int main()
 {
@@ -100,8 +100,7 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 		clear();
 		drawSnake(snake, apple);
                 refresh();
-		usleep(500000);
-		//usleep(1000000 / fps);
+		usleep(1000000 / fps);
 		i++;
 	}
 	
