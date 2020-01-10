@@ -6,6 +6,12 @@
 #include <ncurses.h>
 #include "linked_list.h"
 
+/*
+ * SORTA WORKS
+ * BUG IN WHICH SNAKE NOT DRAWN WELL?
+ * ADD BORDERS AND SCORE, HIGHSCORE AND TIME AT TOP
+ */
+
 void playGame(LinkedList* snake, int* apple, int* stats);
 void drawSnake(LinkedList* snake, int* apple);
 void init_snake(LinkedList* snake);
@@ -30,8 +36,8 @@ int main()
 	windw = initscr();
 	clear();
 	noecho();
-	//cbreak();
-	nodelay(windw, true);
+	timeout(0);
+	curs_set(0);
 
 	snake = initialise_linked_list();
 	apple[0] = 60;
@@ -49,11 +55,11 @@ int main()
 	endwin();
 
 	if(win)
-		printf("You won! %d\n", win);
+		printf("You won!\n");
 	else
-		printf("You lost!\n");
+		printf("You died!\n");
 	
-	printf("Time: %d\n", duration);
+	printf("Time: %ds\n", duration);
 	printf("Score: %d\n", score);
 
 	return 0;
@@ -63,17 +69,21 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 {
 	int start = (int)time(NULL);
 	int score, win, new[0];
-	char c = 'a';
+	char c = 'a', temp;
 	int status[0];
 	score = win = *new = 0;
 	move_left(snake, new, status);
 	while(1)
 	{
+		fps = 3 + (score / 5);
+		temp = c;
 		c = getch();
+		if(c != 'q' && c != 'w' && c != 'a' && c != 's' && c != 'd')
+			c = temp;
 		switch(c)
 		{
 			case 'q':
-				return;
+				goto end;
 			case 'w':
 				move_up(snake, new, status);
 				break;
@@ -102,13 +112,11 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 			//self
 			case 2:
 				win = 0;
-				return;
-				break;
+				goto end;
 			//wall
 			case 3:
 				win = 0;
-				return;
-				break;
+				goto end;
 			default:
 				break;
 		}
@@ -118,8 +126,9 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 		usleep(1000000 / fps);
 	}
 	
+	end:
 	// time
-	*(stats + 0) = (int)time(NULL) - start;
+	*(stats + 0) = (int) (time(NULL) - start);
 	// score
 	*(stats + 1) = score;
 	// win
