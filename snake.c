@@ -10,10 +10,10 @@ void playGame(LinkedList* snake, int* apple, int* stats);
 void drawSnake(LinkedList* snake, int* apple);
 void init_snake(LinkedList* snake);
 int check_collision(LinkedList* snake, int* apple);
-void move_left(LinkedList* snake, int* new);
-void move_right(LinkedList* snake, int* new);
-void move_up(LinkedList* snake, int* new);
-void move_down(LinkedList* snake, int* new);
+void move_left(LinkedList* snake, int* new, int* status);
+void move_right(LinkedList* snake, int* new, int* status);
+void move_up(LinkedList* snake, int* new, int* status);
+void move_down(LinkedList* snake, int* new, int* status);
 void follow(int* tmp, int* prev, LinkedList* snake, int* new);
 void newApple(LinkedList* snake, int* apple);
 
@@ -30,7 +30,8 @@ int main()
 	windw = initscr();
 	clear();
 	noecho();
-	cbreak();
+	//cbreak();
+	nodelay(windw, true);
 
 	snake = initialise_linked_list();
 	apple[0] = 60;
@@ -51,6 +52,7 @@ int main()
 		printf("You won! %d\n", win);
 	else
 		printf("You lost!\n");
+	
 	printf("Time: %d\n", duration);
 	printf("Score: %d\n", score);
 
@@ -61,20 +63,33 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 {
 	int start = (int)time(NULL);
 	int score, win, new[0];
+	char c = 'a';
+	int status[0];
 	score = win = *new = 0;
-	int i = 0;
+	move_left(snake, new, status);
 	while(1)
 	{
-		printw("Update %d", i);
-		if(i < 7)
-			move_up(snake, new);
-		else if(i < 12)
-			move_left(snake, new);
-		else if(i < 17)
-			move_down(snake, new);
-		else
-			move_right(snake, new);
-		
+		c = getch();
+		switch(c)
+		{
+			case 'q':
+				return;
+			case 'w':
+				move_up(snake, new, status);
+				break;
+			case 'a':
+				move_left(snake, new, status);
+				break;
+			case 's':
+				move_down(snake, new, status);
+				break;
+			case 'd':
+				move_right(snake, new, status);
+				break;
+			default:
+				break;
+		}
+
 		switch(check_collision(snake, apple))
 		{
 			//apple
@@ -101,7 +116,6 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 		drawSnake(snake, apple);
                 refresh();
 		usleep(1000000 / fps);
-		i++;
 	}
 	
 	// time
@@ -116,7 +130,9 @@ void drawSnake(LinkedList* snake, int* apple)
 {
 	Node* element;
 	
-	element = snake->head;
+	mvaddstr(snake->head->y, snake->head->x, "o");
+
+	element = snake->head->next;
 	while(element)
 	{
 		mvaddstr(element->y, element->x, "*");
@@ -163,8 +179,11 @@ int check_collision(LinkedList* snake, int* apple)
 	return 0;
 }
 
-void move_left(LinkedList* snake, int* new)
+void move_left(LinkedList* snake, int* new, int* status)
 {
+	/* You cant move left if youre going right */
+	if(*status == 1)
+		return;
 	int tmp[2];
         int prev[2];
 
@@ -173,10 +192,13 @@ void move_left(LinkedList* snake, int* new)
         snake->head->x = snake->head->x - 1;
 
         follow(tmp, prev, snake, new);
+	*status = 0;
 }
 
-void move_right(LinkedList* snake, int* new)
+void move_right(LinkedList* snake, int* new, int* status)
 {
+	if(*status == 0)
+		return;
 	int tmp[2];
         int prev[2];
 
@@ -185,10 +207,13 @@ void move_right(LinkedList* snake, int* new)
         snake->head->x = snake->head->x + 1;
 
         follow(tmp, prev, snake, new);
+	*status = 1;
 }
 
-void move_up(LinkedList* snake, int* new)
+void move_up(LinkedList* snake, int* new, int* status)
 {
+	if(*status == 3)
+		return;
         int tmp[2];
 	int prev[2];
 
@@ -197,10 +222,13 @@ void move_up(LinkedList* snake, int* new)
         snake->head->y = snake->head->y - 1;
 	
 	follow(tmp, prev, snake, new);
+	*status = 2;
 }
 
-void move_down(LinkedList* snake, int* new)
+void move_down(LinkedList* snake, int* new, int* status)
 {
+	if(*status == 2)
+		return;
 	int tmp[2];
         int prev[2];
 
@@ -209,6 +237,7 @@ void move_down(LinkedList* snake, int* new)
         snake->head->y = snake->head->y + 1;
 
         follow(tmp, prev, snake, new);
+	*status = 3;
 }
 
 void follow(int* tmp, int* prev, LinkedList* snake, int* new)
