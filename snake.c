@@ -214,7 +214,10 @@ void move_left(LinkedList* snake, int* new, int* status)
 {
 	/* You cant move left if youre going right */
 	if(*status == 1)
+	{
+		move_right(snake, new, status);
 		return;
+	}
 	int tmp[2];
         int prev[2];
 
@@ -229,7 +232,10 @@ void move_left(LinkedList* snake, int* new, int* status)
 void move_right(LinkedList* snake, int* new, int* status)
 {
 	if(*status == 0)
+	{
+		move_left(snake, new, status);
 		return;
+	}
 	int tmp[2];
         int prev[2];
 
@@ -244,8 +250,11 @@ void move_right(LinkedList* snake, int* new, int* status)
 void move_up(LinkedList* snake, int* new, int* status)
 {
 	if(*status == 3)
+	{
+		move_down(snake, new, status);
 		return;
-        int tmp[2];
+	}
+	int tmp[2];
 	int prev[2];
 
         *(prev + 0) = snake->head->x;
@@ -259,7 +268,10 @@ void move_up(LinkedList* snake, int* new, int* status)
 void move_down(LinkedList* snake, int* new, int* status)
 {
 	if(*status == 2)
+	{
+		move_up(snake, new, status);
 		return;
+	}
 	int tmp[2];
         int prev[2];
 
