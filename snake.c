@@ -14,7 +14,7 @@
 
 void playGame(LinkedList* snake, int* apple, int* stats);
 void drawSnake(LinkedList* snake, int* apple);
-void init_snake(LinkedList* snake);
+void init_snake(LinkedList* snake, int number_nodes);
 int check_collision(LinkedList* snake, int* apple);
 void move_left(LinkedList* snake, int* new, int* status);
 void move_right(LinkedList* snake, int* new, int* status);
@@ -23,7 +23,7 @@ void move_down(LinkedList* snake, int* new, int* status);
 void follow(int* tmp, int* prev, LinkedList* snake, int* new);
 void newApple(LinkedList* snake, int* apple);
 
-int fps = 3;
+int fps = 10;
 
 int main()
 {
@@ -44,7 +44,7 @@ int main()
 	apple[1] = 15;
 
 	/* add initial nodes */
-	init_snake(snake);
+	init_snake(snake, 5);
 
 	/* set highscore */
 	stats[3] = 1;
@@ -73,7 +73,7 @@ int main()
 void playGame(LinkedList* snake, int* apple, int* stats)
 {
 	int start = (int)time(NULL);
-	int score, win, new[0], highscore;
+	int score, win, new[0], highscore, real_fps;
 	char c = 'a', temp;
 	int status[0];
 	score = win = *new = 0;
@@ -82,7 +82,7 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 	move_left(snake, new, status);
 	while(1)
 	{
-		fps = 3 + (score / 5);
+		real_fps = fps + (score / 5);
 		temp = c;
 		c = getch();
 		if(c != 'q' && c != 'w' && c != 'a' && c != 's' && c != 'd')
@@ -137,7 +137,7 @@ void playGame(LinkedList* snake, int* apple, int* stats)
 			highscore = score;
 		}
 
-		usleep(1000000 / fps);
+		usleep(1000000 / real_fps);
 	}
 	
 	end:
@@ -167,22 +167,16 @@ void drawSnake(LinkedList* snake, int* apple)
 	mvaddstr(apple[1], apple[0], "=");
 }
 
-void init_snake(LinkedList* snake)
+void init_snake(LinkedList* snake, int number_nodes)
 {
 	int midx = COLS / 2; 
 	int midy = LINES / 2;
-	
-	append_linked_list(snake, midx - 2, midy);
-	append_linked_list(snake, midx - 1, midy);
-	append_linked_list(snake, midx, midy);
-	append_linked_list(snake, midx + 1, midy);
-	append_linked_list(snake, midx + 2, midy);
-	
-	//debug
-	append_linked_list(snake, midx + 3, midy);
-        append_linked_list(snake, midx + 4, midy);
-	append_linked_list(snake, midx + 5, midy);
-        append_linked_list(snake, midx + 6, midy);
+	int start_x = midx - (number_nodes / 2);
+
+    for(int i = 0; i < number_nodes; i++)
+    {
+        append_linked_list(snake, start_x + i, midy);
+    }
 }
 
 int check_collision(LinkedList* snake, int* apple)
